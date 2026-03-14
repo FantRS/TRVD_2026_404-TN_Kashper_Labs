@@ -1,13 +1,16 @@
+use anyhow::Result;
 use std::net::TcpListener;
 
-use anyhow::Result;
-
+use crate::core::config::AppConfig;
 use crate::core::logger::{self, LogLevel};
+use crate::core::server;
 
 pub async fn start() -> Result<()> {
+    dotenvy::dotenv().ok();
     logger::init_logger(LogLevel::Info);
 
-    let lst = TcpListener::bind(("127.0.0.1", 8080)).unwrap();
+    let config = AppConfig::configure().unwrap();
+    let lst = TcpListener::bind(config.server.addr()).unwrap();
 
-    Ok(())
+    server::start(lst).await
 }
