@@ -1,9 +1,12 @@
 use anyhow::{Error, Result};
 use sqlx::PgPool;
 
+use crate::app::redis::client::RedisClient;
+
 #[derive(Clone)]
 pub struct AppData {
     pub db_pool: PgPool,
+    pub redis: RedisClient,
     pub jwt_secret: String,
 }
 
@@ -16,6 +19,7 @@ impl AppData {
 #[derive(Default)]
 pub struct AppDataBuilder {
     db_pool: Option<PgPool>,
+    redis: Option<RedisClient>,
     jwt_secret: Option<String>,
 }
 
@@ -24,6 +28,9 @@ impl AppDataBuilder {
         let app_data = AppData {
             db_pool: self
                 .db_pool
+                .ok_or(Error::msg("AppData building error (db_pool)"))?,
+            redis: self
+                .redis
                 .ok_or(Error::msg("AppData building error (db_pool)"))?,
             jwt_secret: self
                 .jwt_secret
@@ -35,6 +42,11 @@ impl AppDataBuilder {
 
     pub fn with_db_pool(mut self, db_pool: PgPool) -> Self {
         self.db_pool = Some(db_pool);
+        self
+    }
+
+    pub fn with_redis_client(mut self, redis_client: RedisClient) -> Self {
+        self.redis = Some(redis_client);
         self
     }
 

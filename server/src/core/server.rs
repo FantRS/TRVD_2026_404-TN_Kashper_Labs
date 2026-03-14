@@ -6,6 +6,7 @@ use std::net::TcpListener;
 use std::time::Duration;
 use tracing_actix_web::TracingLogger;
 
+use crate::app::routes;
 use crate::core::app_data::AppData;
 
 pub async fn start(lst: TcpListener, app_data: AppData) -> Result<()> {
@@ -17,6 +18,7 @@ pub async fn start(lst: TcpListener, app_data: AppData) -> Result<()> {
             .wrap(NormalizePath::trim())
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(app_data.clone()))
+            .configure(routes::configure_all_routes)
     })
     .keep_alive(Duration::from_secs(75))
     .listen(lst)?

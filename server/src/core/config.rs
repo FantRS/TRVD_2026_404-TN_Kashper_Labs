@@ -9,6 +9,8 @@ pub struct AppConfig {
     pub server: ServerSettings,
     #[serde(flatten)]
     pub postgres: PostgresSettings,
+    #[serde(flatten)]
+    pub redis: RedisSettings,
     pub jwt_secret: String,
 }
 
@@ -67,5 +69,25 @@ impl PostgresSettings {
             .host(&self.host)
             .port(self.port)
             .database(&self.db_name)
+    }
+}
+
+#[serde_as]
+#[derive(Debug, Deserialize, Serialize)]
+pub struct RedisSettings {
+    #[serde(rename = "redis_host")]
+    host: String,
+
+    #[serde_as(as = "DisplayFromStr")]
+    #[serde(rename = "redis_port")]
+    port: u16,
+
+    #[serde(rename = "redis_password")]
+    pass: String,
+}
+
+impl RedisSettings {
+    pub fn addr(&self) -> String {
+        format!("redis://:{}@{}:{}", self.pass, self.host, self.port)
     }
 }
