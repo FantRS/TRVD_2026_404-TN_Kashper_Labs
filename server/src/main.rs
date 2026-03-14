@@ -1,7 +1,11 @@
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+use std::process::ExitCode;
 
-fn main() -> Result<()> {
-    println!("Hello, world!");
+#[tokio::main]
+async fn main() -> ExitCode {
+    if let Err(e) = server::start().await {
+        tracing::error!("CRITICAL SERVER ERROR: {}", e);
+        return ExitCode::FAILURE;
+    }
 
-    Ok(())
+    ExitCode::SUCCESS
 }
