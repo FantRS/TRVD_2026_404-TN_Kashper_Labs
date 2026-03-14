@@ -5,6 +5,12 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.102"
+thiserror = "2.0.17"
+argon2 = "0.5.3"
+validator = { version = "0.20.0", features = ["derive"] }
+jsonwebtoken = "9.3.1"
+rand = "0.8.5"
+reqwest = { version = "0.13.2", features = ["json"] }
 
 config = "0.15.19"
 serde = { version = "1.0", features = ["derive"] }
@@ -19,3 +25,10 @@ tracing = "0.1.41"
 tracing-actix-web = "0.7.19"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter", "json", "registry"] }
 dotenvy = "0.15.7"
+
+utoipa = { version = "5.4.0", features = ["actix_extras", "uuid", "chrono"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["actix-web"] }
+
+sqlx = { version = "0.8.6", features = ["chrono", "uuid", "postgres", "runtime-tokio", "sqlx-macros"] }
+chrono = { version = "0.4.42", features = ["serde"] }
+uuid = { version = "1.18.1", features = ["v4", "v7", "fast-rng", "serde"] }

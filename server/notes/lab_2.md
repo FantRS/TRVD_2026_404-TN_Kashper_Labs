@@ -34,28 +34,22 @@
 
 ```mermaid
 flowchart LR
-    customer["Клієнт<br/>Оформлює замовлення, оплачує, відстежує статус"]
-    guest["Відвідувач<br/>Переглядає каталог, ціни, контакти"]
-    manager["Менеджер / оператор<br/>Перевіряє документи та обробляє замовлення"]
+    user["Клієнт<br/>Оформлює замовлення, оплачує, відстежує статус"]
     employee["Співробітник крематорію<br/>Працює з розкладом і виконанням послуг"]
     admin["Адміністратор<br/>Керує каталогом, ролями та налаштуваннями"]
 
     system["CrematoryRs Online Store<br/>Вебсистема замовлення послуг і товарів"]
 
-    payment["Платіжний шлюз<br/>LiqPay / WayForPay"]
-    mail["Email API / SMTP provider"]
-    storage["Файлове сховище<br/>S3 / MinIO"]
+    payment["Платіжний шлюз<br/>Mono"]
+    database["База даних<br />PostgreSQL"]
 
-    customer -->|HTTPS| system
-    guest -->|HTTPS| system
-    manager -->|HTTPS| system
+    user -->|HTTPS| system
     employee -->|HTTPS| system
     admin -->|HTTPS| system
 
     system -->|HTTPS API| payment
+    system -->|HTTPS API| database
     payment -->|Webhook HTTPS| system
-    system -->|HTTPS / SMTP API| mail
-    system -->|S3 API / HTTPS| storage
 ```
 
 **Опис:** на контекстному рівні система CrematoryRs розглядається як єдина "чорна скринька". Навколо неї показано основних користувачів та зовнішні сервіси: платіжний шлюз, поштовий сервіс і файлове сховище.
@@ -98,15 +92,11 @@ flowchart LR
         orders["Order Service<br/>Кошик, оформлення, статуси"]
         schedule["Schedule Service<br/>Слоти, бронювання, розклад"]
         payments["Payment Service<br/>Ініціація оплат, webhooks"]
-        docs["Document Service<br/>Завантаження і перевірка документів"]
-        notify["Notification Service<br/>Email-сповіщення"]
         repos["Repository Layer<br/>Робота з PostgreSQL"]
     end
 
     db[("PostgreSQL")]
-    storage[("S3 / MinIO")]
     payment["Платіжний шлюз"]
-    mail["Email API / SMTP"]
 
     router --> auth
     router --> catalog
@@ -114,19 +104,14 @@ flowchart LR
     router --> schedule
 
     orders --> payments
-    orders --> docs
-    orders --> notify
     orders --> repos
 
     auth --> repos
     catalog --> repos
     schedule --> repos
     payments --> repos
-    docs --> repos
 
     payments -->|HTTPS REST| payment
-    docs -->|S3 API / HTTPS| storage
-    notify -->|HTTPS API / SMTP| mail
     repos -->|SQL| db
 ```
 
@@ -262,16 +247,6 @@ erDiagram
         varchar currency
         varchar external_reference
         timestamp paid_at
-    }
-
-    DOCUMENTS {
-        uuid document_id PK
-        uuid order_id FK
-        varchar document_type
-        varchar file_name
-        varchar storage_key
-        varchar mime_type
-        timestamp uploaded_at
     }
 
     ORDER_STATUS_HISTORY {
