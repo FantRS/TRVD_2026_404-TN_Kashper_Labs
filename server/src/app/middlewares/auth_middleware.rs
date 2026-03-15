@@ -1,16 +1,16 @@
-use std::future::{ready, Ready};
+use std::future::{Ready, ready};
 use std::rc::Rc;
 
 use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    http::header,
     Error, HttpMessage,
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
+    http::header,
 };
 use futures_util::future::LocalBoxFuture;
 
+use crate::app::RequestError;
 use crate::app::redis::token_wl_service;
 use crate::app::utils::jwt::decode_jwt;
-use crate::app::RequestError;
 
 pub struct AuthMiddlewareFactory;
 
@@ -90,17 +90,16 @@ where
 
         let service = self.service.clone();
         Box::pin(async move {
-            let allowed =
-                match token_wl_service::verify_in_whitelist(&claims, &redis_pool).await {
-                    Ok(v) => v,
-                    Err(e) => {
-                        tracing::error!(
-                            "Whitelist check failed: {}. DENYING request (fail-closed)",
-                            e
-                        );
-                        false
-                    }
-                };
+            let allowed = match token_wl_service::verify_in_whitelist(&claims, &redis_pool).await {
+                Ok(v) => v,
+                Err(e) => {
+                    tracing::error!(
+                        "Whitelist check failed: {}. DENYING request (fail-closed)",
+                        e
+                    );
+                    false
+                }
+            };
 
             if !allowed {
                 tracing::warn!("Token {} not in whitelist", claims.jti);

@@ -11,7 +11,7 @@ pub fn create_jwt(user_id: Uuid, role: UserRole, secret: &str) -> RequestResult<
 
     let expiration = Utc::now()
         .checked_add_signed(Duration::hours(TIME_DELTA_HOURS))
-        .expect("valid timestamp")
+        .ok_or_else(|| RequestError::internal_server_error("failed to compute jwt expiration"))?
         .timestamp();
 
     let claims = Claims {

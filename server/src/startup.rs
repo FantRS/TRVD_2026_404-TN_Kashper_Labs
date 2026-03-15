@@ -12,20 +12,18 @@ pub async fn start() -> Result<()> {
     dotenvy::dotenv().ok();
     logger::init_logger(LogLevel::Info);
 
-    let config = AppConfig::configure().unwrap();
-    let lst = TcpListener::bind(config.server.addr()).unwrap();
-    let db_pool = pg_connector::connect(config.postgres.options())
-        .await
-        .unwrap();
-    let redis_pool = redis_connector::connect(config.redis.addr()).await.unwrap();
+    let config = AppConfig::configure()?;
+    let lst = TcpListener::bind(config.server.addr())?;
+    let db_pool = pg_connector::connect(config.postgres.options()).await?;
+    let redis_pool = redis_connector::connect(config.redis.addr()).await?;
     let redis_client = RedisClient::new(redis_pool);
 
     let app_data = AppData::builder()
         .with_db_pool(db_pool)
         .with_redis_client(redis_client)
         .with_jwt(config.jwt_secret)
-        .build()
-        .unwrap();
+        .with_business_hours(config.business_hours)
+        .build()?;
 
     server::start(lst, app_data).await
 }

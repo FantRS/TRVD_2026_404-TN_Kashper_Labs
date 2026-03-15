@@ -1,8 +1,8 @@
+use deadpool_redis::Connection;
+use deadpool_redis::Pool as RedisPool;
 use deadpool_redis::redis::AsyncCommands as _;
 use deadpool_redis::redis::FromRedisValue;
 use deadpool_redis::redis::Pipeline;
-use deadpool_redis::Connection;
-use deadpool_redis::Pool as RedisPool;
 
 use crate::app::{RequestError, RequestResult};
 

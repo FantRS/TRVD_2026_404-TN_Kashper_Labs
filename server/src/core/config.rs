@@ -11,6 +11,8 @@ pub struct AppConfig {
     pub postgres: PostgresSettings,
     #[serde(flatten)]
     pub redis: RedisSettings,
+    #[serde(flatten)]
+    pub business_hours: BusinessHoursSettings,
     pub jwt_secret: String,
 }
 
@@ -25,7 +27,7 @@ impl AppConfig {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ServerSettings {
     #[serde(rename = "server_host")]
     pub host: String,
@@ -42,7 +44,7 @@ impl ServerSettings {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct PostgresSettings {
     #[serde(rename = "postgres_user")]
     user: String,
@@ -73,7 +75,7 @@ impl PostgresSettings {
 }
 
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RedisSettings {
     #[serde(rename = "redis_host")]
     host: String,
@@ -90,4 +92,20 @@ impl RedisSettings {
     pub fn addr(&self) -> String {
         format!("redis://:{}@{}:{}", self.pass, self.host, self.port)
     }
+}
+
+#[serde_as]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct BusinessHoursSettings {
+    #[serde_as(as = "DisplayFromStr")]
+    #[serde(rename = "business_hours_start_hour")]
+    pub start_hour: u32,
+
+    #[serde_as(as = "DisplayFromStr")]
+    #[serde(rename = "business_hours_end_hour")]
+    pub end_hour: u32,
+
+    #[serde_as(as = "DisplayFromStr")]
+    #[serde(rename = "business_hours_slot_minutes")]
+    pub slot_minutes: i64,
 }

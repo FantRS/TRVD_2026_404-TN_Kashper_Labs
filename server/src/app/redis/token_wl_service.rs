@@ -3,9 +3,9 @@ use uuid::Uuid;
 
 use super::keys::RedisKey;
 
+use crate::app::ServiceContext;
 use crate::app::domains::auth::models::Claims;
 use crate::app::redis::client::RedisClient;
-use crate::app::ServiceContext;
 use crate::app::{RequestError, RequestResult};
 
 /// Додати токен до whitelist

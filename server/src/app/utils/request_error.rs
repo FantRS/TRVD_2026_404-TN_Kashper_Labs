@@ -1,6 +1,6 @@
 use actix_web::{
-    http::{header::ContentType, StatusCode},
     HttpResponse, ResponseError,
+    http::{StatusCode, header::ContentType},
 };
 
 pub type RequestResult<T> = Result<T, RequestError>;

@@ -1,22 +1,27 @@
+mod auth_routes;
+mod catalog_routes;
+mod health_routes;
+mod orders_routes;
+mod payments_routes;
+mod reports_routes;
+mod schedule_routes;
 mod swagger;
+mod users_routes;
 
 use actix_web::web;
 
 pub fn configure_all_routes(cfg: &mut web::ServiceConfig) {
+    health_routes::configure(cfg);
     swagger::configure(cfg);
 
     cfg.service(
         web::scope("/api")
-            // .configure(auth_routes::configure)
-            // .configure(corporate_routes::configure)
-            // .configure(groups_routes::configure)
-            // .configure(internal_routes::configure)
-            // .configure(lesson_balances_routes::configure)
-            // .configure(lessons_routes::configure)
-            // .configure(orders_routes::configure)
-            // .configure(products_routes::configure)
-            // .configure(students_routes::configure)
-            // .configure(teachers_routes::configure)
-            // .configure(webhooks_routes::configure),
+            .configure(auth_routes::configure)
+            .configure(catalog_routes::configure)
+            .configure(orders_routes::configure)
+            .configure(schedule_routes::configure)
+            .configure(payments_routes::configure)
+            .configure(users_routes::configure)
+            .configure(reports_routes::configure),
     );
 }

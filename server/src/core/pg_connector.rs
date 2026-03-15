@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use anyhow::Result;
 use sqlx::{
-    postgres::{PgConnectOptions, PgPoolOptions},
     PgPool,
+    postgres::{PgConnectOptions, PgPoolOptions},
 };
 
 pub async fn connect(options: PgConnectOptions) -> Result<PgPool> {

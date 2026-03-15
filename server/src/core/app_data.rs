@@ -2,12 +2,14 @@ use anyhow::{Error, Result};
 use sqlx::PgPool;
 
 use crate::app::redis::client::RedisClient;
+use crate::core::config::BusinessHoursSettings;
 
 #[derive(Clone)]
 pub struct AppData {
     pub db_pool: PgPool,
     pub redis: RedisClient,
     pub jwt_secret: String,
+    pub business_hours: BusinessHoursSettings,
 }
 
 impl AppData {
@@ -21,6 +23,7 @@ pub struct AppDataBuilder {
     db_pool: Option<PgPool>,
     redis: Option<RedisClient>,
     jwt_secret: Option<String>,
+    business_hours: Option<BusinessHoursSettings>,
 }
 
 impl AppDataBuilder {
@@ -35,6 +38,9 @@ impl AppDataBuilder {
             jwt_secret: self
                 .jwt_secret
                 .ok_or(Error::msg("AppData building error (jwt)"))?,
+            business_hours: self
+                .business_hours
+                .ok_or(Error::msg("AppData building error (business_hours)"))?,
         };
 
         Ok(app_data)
@@ -52,6 +58,11 @@ impl AppDataBuilder {
 
     pub fn with_jwt(mut self, jwt: String) -> Self {
         self.jwt_secret = Some(jwt);
+        self
+    }
+
+    pub fn with_business_hours(mut self, business_hours: BusinessHoursSettings) -> Self {
+        self.business_hours = Some(business_hours);
         self
     }
 }

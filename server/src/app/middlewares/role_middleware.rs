@@ -1,14 +1,14 @@
-use std::future::{ready, Ready};
+use std::future::{Ready, ready};
 use std::rc::Rc;
 
 use actix_web::{
-    dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
     Error, HttpMessage,
+    dev::{Service, ServiceRequest, ServiceResponse, Transform, forward_ready},
 };
 use futures_util::future::LocalBoxFuture;
 
-use crate::app::domains::auth::models::{Claims, UserRole};
 use crate::app::RequestError;
+use crate::app::domains::auth::models::{Claims, UserRole};
 
 pub struct RoleGuardFactory {
     allowed_roles: Rc<Vec<UserRole>>,
@@ -97,7 +97,9 @@ where
                 }
             }
             None => {
-                tracing::error!("RoleGuard: No claims found in request extensions. Ensure AuthMiddleware runs first.");
+                tracing::error!(
+                    "RoleGuard: No claims found in request extensions. Ensure AuthMiddleware runs first."
+                );
                 let err = RequestError::Unauthorized("Authentication required".to_string());
                 Box::pin(async move { Err(Error::from(err)) })
             }

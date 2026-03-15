@@ -2,11 +2,13 @@ use sqlx::PgPool;
 
 use crate::app::AppData;
 use crate::app::redis::client::RedisClient;
+use crate::core::config::BusinessHoursSettings;
 
 pub struct ServiceContext<'a> {
     pub db_pool: &'a PgPool,
     pub redis: &'a RedisClient,
     pub jwt_secret: &'a str,
+    pub business_hours: &'a BusinessHoursSettings,
 }
 
 impl<'a> From<&'a AppData> for ServiceContext<'a> {
@@ -15,6 +17,7 @@ impl<'a> From<&'a AppData> for ServiceContext<'a> {
             db_pool: &value.db_pool,
             redis: &value.redis,
             jwt_secret: &value.jwt_secret,
+            business_hours: &value.business_hours,
         }
     }
 }
