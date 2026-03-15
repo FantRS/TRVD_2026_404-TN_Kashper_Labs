@@ -2,7 +2,7 @@ use sqlx::PgExecutor;
 use uuid::Uuid;
 
 use crate::app::domains::orders::models::{
-    CheckoutOrderRequestValid, OrderItemResponse, OrderItemRow, OrderRow,
+    CheckoutOrderRequestValid, OrderItemResponse, OrderItemRow, OrderRow, OrderSummary,
 };
 use crate::app::{RequestError, RequestResult};
 
@@ -315,6 +315,34 @@ where
     .map_err(Into::into)
 }
 
+pub async fn get_order_summaries_for_user<'c, E>(
+    user_id: Uuid,
+    executor: E,
+) -> RequestResult<Vec<OrderSummary>>
+where
+    E: PgExecutor<'c>,
+{
+    sqlx::query_as::<_, OrderSummary>(
+        r#"
+        SELECT
+            orders.id,
+            orders.order_number,
+            order_statuses.code AS current_status_code,
+            orders.total_amount::DOUBLE PRECISION AS total_amount
+        FROM orders
+        INNER JOIN order_statuses
+            ON order_statuses.id = orders.current_status_id
+        WHERE orders.user_id = $1
+          AND order_statuses.code <> 'draft'
+        ORDER BY orders.created_at DESC
+        "#,
+    )
+    .bind(user_id)
+    .fetch_all(executor)
+    .await
+    .map_err(Into::into)
+}
+
 pub async fn get_order_items<'c, E>(
     order_id: Uuid,
     executor: E,
@@ -358,6 +386,52 @@ where
 
     items.sort_by(|left, right| left.title.cmp(&right.title));
     Ok(items)
+}
+
+pub async fn remove_service_item<'c, E>(
+    order_id: Uuid,
+    service_id: Uuid,
+    executor: E,
+) -> RequestResult<()>
+where
+    E: PgExecutor<'c>,
+{
+    sqlx::query(
+        r#"
+        DELETE FROM order_service_items
+        WHERE order_id = $1
+          AND service_id = $2
+        "#,
+    )
+    .bind(order_id)
+    .bind(service_id)
+    .execute(executor)
+    .await?;
+
+    Ok(())
+}
+
+pub async fn remove_product_item<'c, E>(
+    order_id: Uuid,
+    product_id: Uuid,
+    executor: E,
+) -> RequestResult<()>
+where
+    E: PgExecutor<'c>,
+{
+    sqlx::query(
+        r#"
+        DELETE FROM order_product_items
+        WHERE order_id = $1
+          AND product_id = $2
+        "#,
+    )
+    .bind(order_id)
+    .bind(product_id)
+    .execute(executor)
+    .await?;
+
+    Ok(())
 }
 
 pub async fn ensure_order_owner<'c, E>(

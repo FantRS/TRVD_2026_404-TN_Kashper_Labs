@@ -2,7 +2,7 @@ use uuid::Uuid;
 
 use crate::app::domains::orders::models::{
     AddProductToCartRequest, AddServiceToCartRequest, CheckoutOrderRequestValid,
-    EmployeeOrderStatusUpdateRequestValid, OrderNumber, OrderResponse,
+    EmployeeOrderStatusUpdateRequestValid, OrderNumber, OrderResponse, OrderSummary,
 };
 use crate::app::domains::orders::repository;
 use crate::app::events::{DomainEvent, publish};
@@ -36,6 +36,13 @@ pub async fn get_or_create_draft_order(
     Ok(response)
 }
 
+pub async fn get_orders_for_user(
+    user_id: Uuid,
+    ctx: &ServiceContext<'_>,
+) -> RequestResult<Vec<OrderSummary>> {
+    repository::get_order_summaries_for_user(user_id, ctx.db_pool).await
+}
+
 pub async fn add_service_to_cart(
     user_id: Uuid,
     request: AddServiceToCartRequest,
@@ -63,6 +70,40 @@ pub async fn add_product_to_cart(
     let order_id = ensure_draft_order(user_id, &mut tx).await?;
     repository::upsert_product_item(order_id, request.product_id, request.quantity, &mut *tx)
         .await?;
+    repository::refresh_order_total(order_id, &mut *tx).await?;
+    let response = load_order_response(order_id, &mut tx).await?;
+    tx.commit().await?;
+
+    Ok(response)
+}
+
+pub async fn remove_service_from_cart(
+    user_id: Uuid,
+    service_id: Uuid,
+    ctx: &ServiceContext<'_>,
+) -> RequestResult<OrderResponse> {
+    let mut tx = ctx.db_pool.begin().await?;
+    let order_id = repository::find_draft_order_id_by_user_id(user_id, &mut *tx)
+        .await?
+        .ok_or_else(|| RequestError::not_found("draft order not found"))?;
+    repository::remove_service_item(order_id, service_id, &mut *tx).await?;
+    repository::refresh_order_total(order_id, &mut *tx).await?;
+    let response = load_order_response(order_id, &mut tx).await?;
+    tx.commit().await?;
+
+    Ok(response)
+}
+
+pub async fn remove_product_from_cart(
+    user_id: Uuid,
+    product_id: Uuid,
+    ctx: &ServiceContext<'_>,
+) -> RequestResult<OrderResponse> {
+    let mut tx = ctx.db_pool.begin().await?;
+    let order_id = repository::find_draft_order_id_by_user_id(user_id, &mut *tx)
+        .await?
+        .ok_or_else(|| RequestError::not_found("draft order not found"))?;
+    repository::remove_product_item(order_id, product_id, &mut *tx).await?;
     repository::refresh_order_total(order_id, &mut *tx).await?;
     let response = load_order_response(order_id, &mut tx).await?;
     tx.commit().await?;

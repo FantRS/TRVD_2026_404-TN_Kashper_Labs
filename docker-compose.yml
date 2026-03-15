@@ -43,6 +43,19 @@ services:
     networks:
       - crematory_network
 
+  frontend:
+    build:
+      context: ./front
+      dockerfile: Dockerfile
+    container_name: crematory_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - crematory_network
+
 volumes:
   pgdata:
   redisdata:

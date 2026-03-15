@@ -1,8 +1,9 @@
 use serde::Serialize;
+use sqlx::FromRow;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToSchema, FromRow)]
 pub struct OrderSummary {
     pub id: Uuid,
     pub order_number: String,

@@ -11,14 +11,23 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
                 web::scope("")
                     .wrap(RoleGuardFactory::user_only())
                     .wrap(AuthMiddlewareFactory)
+                    .route("", web::get().to(controller::get_orders))
                     .route("/cart", web::get().to(controller::get_cart))
                     .route(
                         "/cart/services",
                         web::post().to(controller::add_service_to_cart),
                     )
                     .route(
+                        "/cart/services/{id}",
+                        web::delete().to(controller::remove_service_from_cart),
+                    )
+                    .route(
                         "/cart/products",
                         web::post().to(controller::add_product_to_cart),
+                    )
+                    .route(
+                        "/cart/products/{id}",
+                        web::delete().to(controller::remove_product_from_cart),
                     )
                     .route("/checkout", web::post().to(controller::checkout))
                     .route("/{id}", web::get().to(controller::get_order)),
