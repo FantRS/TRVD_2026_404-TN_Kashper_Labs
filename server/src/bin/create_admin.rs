@@ -116,7 +116,9 @@ fn required_arg<'a>(args: &'a HashMap<String, String>, key: &str) -> Result<&'a 
 }
 
 fn optional_arg<'a>(args: &'a HashMap<String, String>, key: &str) -> Option<&'a str> {
-    args.get(key).map(String::as_str).filter(|value| !value.trim().is_empty())
+    args.get(key)
+        .map(String::as_str)
+        .filter(|value| !value.trim().is_empty())
 }
 
 fn validate_inputs(email: &str, password: &str, full_name: &str) -> Result<()> {
